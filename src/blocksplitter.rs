@@ -26,37 +26,39 @@ fn find_minimum<F>(f: F, start: usize, end: usize) -> (usize, f64)
     } else {
         /* Try to find minimum faster by recursively checking multiple points. */
         let num = 9;  /* Good value: 9. ?!?!?!?! */
-        let mut p = vec![0; num];
-        let mut vp = vec![0.0; num];
-        let mut besti;
+        let mut p;
+        let mut best_index;
         let mut best;
         let mut lastbest = f64::MAX;
-        let mut pos = start;
+        let mut pos      = start;
+        let mut range    = end - start;
 
-        while end - start > num {
-            for i in 0..num {
-                p[i] = start + (i + 1) * ((end - start) / (num + 1));
-                vp[i] = f(p[i]);
-            }
+        while range > num {
+            // Collect the values for `p`
+            p = (1..num+1).map(|i| start + i * (range / num)).collect::<Vec<usize>>();
 
-            besti = 0;
-            best = vp[0];
+            best_index = 0;
+            best = f(p[0]);
 
-            for (i, &item) in vp.iter().enumerate().take(num).skip(1) {
+            // Iterate across values in `p` to find the best value and that value's index.
+            for (i, item) in p.iter().map(|item| f(*item)).enumerate().take(num).skip(1) {
                 if item < best {
-                  best = item;
-                  besti = i;
+                    best = item;
+                    best_index = i;
                 }
             }
+
+            // Break from the loop if the best value found is greater than the last best value.
             if best > lastbest {
                 break;
             }
 
-            start = if besti == 0 { start } else { p[besti - 1] };
-            end = if besti == num - 1 { end } else { p[besti + 1] };
+            if best_index != 0 { start = p[best_index - 1] }
+            if best_index != num - 1 { end = p[best_index + 1] }
 
-            pos = p[besti];
+            pos = p[best_index];
             lastbest = best;
+            range = end - start;
         }
         (pos, lastbest)
     }
