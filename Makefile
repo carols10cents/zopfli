@@ -35,7 +35,6 @@ libzopfli:
 test:
 	cargo test
 	./test/run.sh
-	git diff --exit-code
 
 # Remove all libraries and binaries
 clean:
