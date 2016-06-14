@@ -33,9 +33,7 @@ libzopfli:
 
 .PHONY: test
 test:
-	cargo test
-	./test/run.sh
-	git diff --exit-code
+	cargo test && ./test/run.sh
 
 # Remove all libraries and binaries
 clean:
