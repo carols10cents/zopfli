@@ -4,6 +4,7 @@ extern crate adler32;
 extern crate byteorder;
 extern crate crc;
 extern crate typed_arena;
+extern crate iter_read;
 
 mod iter;
 mod blocksplitter;
@@ -19,7 +20,7 @@ mod tree;
 mod util;
 mod zlib;
 
-use std::io::{self, Write};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 
 use deflate::{deflate, BlockType};
 use gzip::gzip_compress;
@@ -61,12 +62,25 @@ pub enum Format {
     Deflate,
 }
 
-pub fn compress<W>(options: &Options, output_type: &Format, in_data: &[u8], out: W) -> io::Result<()>
-    where W: Write
+pub fn compress_seekable<R, W>(options: &Options, output_type: &Format, mut in_data: R, out: W) -> io::Result<()>
+    where R: Read + Seek, W: Write
+{
+    let insize = {
+        let offset = try!(in_data.seek(SeekFrom::Current(0)));
+        let insize = try!(in_data.seek(SeekFrom::End(0)));
+        try!(in_data.seek(SeekFrom::Start(offset)));
+        insize
+    };
+
+    compress(options, output_type, in_data, insize, out)
+}
+
+pub fn compress<R, W>(options: &Options, output_type: &Format, in_data: R, insize: u64, out: W) -> io::Result<()>
+    where R: Read, W: Write
 {
     match *output_type {
-        Format::Gzip => gzip_compress(options, in_data, out),
-        Format::Zlib => zlib_compress(options, in_data, out),
-        Format::Deflate => deflate(options, BlockType::Dynamic, in_data, out),
+        Format::Gzip => gzip_compress(options, in_data, insize, out),
+        Format::Zlib => zlib_compress(options, in_data, insize, out),
+        Format::Deflate => deflate(options, BlockType::Dynamic, in_data, insize, out),
     }
 }
