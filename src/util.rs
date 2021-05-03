@@ -37,4 +37,5 @@ pub const ZOPFLI_MAX_CHAIN_HITS: usize = 8192;
 /// The whole compression algorithm, including the smarter block splitting, will
 /// be executed independently on each huge block.
 /// Dividing into huge blocks hurts compression, but not much relative to the size.
+/// This must be equal or greater than `ZOPFLI_WINDOW_SIZE`.
 pub const ZOPFLI_MASTER_BLOCK_SIZE: usize = 1000000;

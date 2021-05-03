@@ -19,14 +19,9 @@ fn main() {
     };
 
     for filename in env::args().skip(1) {
-        let mut file = File::open(&filename)
+        let file = File::open(&filename)
             .unwrap_or_else(|why| panic!("couldn't open {}: {}", filename, why));
-        let filesize = file.metadata().map(|x| x.len()).unwrap_or(0) as usize;
-
-        let mut data = Vec::with_capacity(filesize);
-        // Read the contents of the file into in_data; panic if the file could not be read
-        file.read_to_end(&mut data)
-            .unwrap_or_else(|why| panic!("couldn't read {}: {}", filename, why));
+        let filesize = file.metadata().map(|x| x.len()).unwrap() as usize;
 
         let out_filename = format!("{}{}", filename, extension);
 
@@ -35,7 +30,7 @@ fn main() {
             .unwrap_or_else(|why| panic!("couldn't create output file {}: {}", out_filename, why));
         let mut out_file = WriteStatistics::new(BufWriter::new(out_file));
 
-        zopfli::compress(&options, &output_type, &data, &mut out_file)
+        zopfli::compress(&options, &output_type, &file, filesize as u64, &mut out_file)
             .unwrap_or_else(|why| panic!("couldn't write to output file {}: {}", out_filename, why));
 
         if options.verbose {
