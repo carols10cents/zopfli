@@ -1,9 +1,10 @@
 use std::io::{self, Write};
-use crc::crc32;
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use deflate::{deflate, BlockType};
 use Options;
+
+const CRC_IEEE: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 
 static HEADER: &'static [u8] = &[
     31,  // ID1
@@ -28,6 +29,6 @@ pub fn gzip_compress<W>(options: &Options, in_data: &[u8], mut out: W) -> io::Re
 
     try!(deflate(options, BlockType::Dynamic, in_data, out.by_ref()));
 
-    try!(out.by_ref().write_u32::<LittleEndian>(crc32::checksum_ieee(in_data)));
+    try!(out.by_ref().write_u32::<LittleEndian>(CRC_IEEE.checksum(in_data)));
     out.write_u32::<LittleEndian>(in_data.len() as u32)
 }

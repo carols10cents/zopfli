@@ -12,10 +12,10 @@ categories = ["compression"]
 exclude = ["test/*"]
 
 [dependencies]
-crc = "1.8.1"
+crc = "2.0.0"
 adler32 = "1.0.3"
 byteorder = "1.2.6"
-typed-arena = "1.4.1"
+typed-arena = "2.0.1"
 
 [profile.release]
 debug = true
